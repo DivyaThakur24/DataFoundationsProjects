@@ -1,0 +1,67 @@
+/*Query for the Insight 1*/
+SELECT DISTINCT g.name ,SUM(il.UnitPrice * il.Quantity) total_spent
+FROM Track t
+JOIN InvoiceLine il
+ON il.TrackId = t.TrackId
+JOIN Invoice i
+ON i.InvoiceId = il.InvoiceId
+JOIN Genre g
+ON t.GenreId = g.GenreId
+JOIN Album al
+ON al.AlbumId = t.AlbumId
+JOIN Artist a
+ON a.ArtistId = al.ArtistId
+GROUP BY 1
+ORDER BY 2;
+
+/*Query for the Insight 2*/
+SELECT a.ArtistId, a.Name, COUNT(*) songs
+FROM Artist a
+JOIN Album al
+ON a.ArtistId = al.ArtistId
+JOIN Track t
+ON t.AlbumId = al.AlbumId
+JOIN Genre g
+ON g.GenreId = t.GenreId
+WHERE g.Name = "Latin"
+GROUP BY 1,2
+ORDER BY songs desc
+LIMIT 10;
+
+/*Query for the Insight 3*/
+SELECT Country, SUM(total)
+FROM
+(SELECT a.Name, c.Country Country, 
+c.FirstName, c.LastName, SUM(il.Quantity * il.UnitPrice) total
+FROM Artist a
+JOIN Album al
+ON a.ArtistId = al.ArtistId
+JOIN Track t
+ON t.AlbumId = al.AlbumId
+JOIN Genre g
+ON g.GenreId = t.GenreId
+JOIN InvoiceLine il
+ON t.TrackId = il.TrackId
+JOIN Invoice i
+ON i.InvoiceId = il.InvoiceId
+JOIN Customer c
+ON c.CustomerId = i.InvoiceId
+WHERE g.Name = "Latin"
+GROUP BY 1,2,3,4
+ORDER BY i.total desc) t1
+GROUP BY 1;
+
+/*Queries for the Insight 4*/
+SELECT COUNT(Tracks), Playlist_Name
+FROM(
+SELECT t.Name Tracks, t.Milliseconds Time_in_ms, p.Name Playlist_Name
+FROM Track t
+JOIN Genre g
+ON g.GenreId = t.GenreId
+JOIN PlaylistTrack pt
+ON t.TrackId = pt.TrackId
+JOIN Playlist p
+ON p.PlaylistId = pt.PlaylistId
+WHERE t.Milliseconds > (SELECT AVG(Milliseconds) FROM Track)
+ORDER BY 2,3) t1
+GROUP BY 2;
